@@ -16,12 +16,12 @@ class PendulumWidget(Widget):
         super(PendulumWidget, self).__init__(**kwargs)
 
         # Pendulum properties
-        self.angle = 45  # Initial angle in degrees
+        self.angle = 90  # Initial angle in degrees
         self.length = 200  # Length of the pendulum
         self.origin = (400, 500)  # Origin point of the pendulum
         self.bob_radius = 20  # Radius of the pendulum bob
         self.angular_velocity = 0  # Angular velocity of the pendulum
-        self.gravity = 0.5  # Gravity effect
+        self.gravity = 0.01  # Gravity effect
 
         # Schedule the update method to run every frame
         Clock.schedule_interval(self.update, 1 / 60.0)
@@ -41,6 +41,7 @@ class PendulumWidget(Widget):
             # Draw the pendulum string
             Color(1, 1, 1)
             Line(points=[self.origin[0], self.origin[1], bob_x, bob_y], width=2)
+            Line(points=[self.origin[0]+40, self.origin[1], bob_x, bob_y], width=2)
 
             # Draw the pendulum bob
             Color(0, 1, 0)
