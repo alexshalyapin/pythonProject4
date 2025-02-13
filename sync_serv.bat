@@ -1,0 +1,1 @@
+C:\Users\Engineer\PycharmProjects\PythonProject1\.venv\Scripts\python.exe C:\Users\Engineer\PycharmProjects\PythonProject1\synch_serv_1.1.pandas.py 
