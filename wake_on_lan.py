@@ -8,6 +8,7 @@ from kivy.graphics import Color, RoundedRectangle
 from kivy.properties import ListProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.anchorlayout import AnchorLayout
+from kivy.uix.button import Button
 
 # Set the window size
 Window.size = (400, 300)
