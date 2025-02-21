@@ -1,121 +1,128 @@
-from kivy.app import App
-from kivy.uix.button import Button
-from kivy.uix.textinput import TextInput
-from kivy.uix.label import Label
-from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.widget import Widget
-from kivy.graphics import Line, Ellipse, Color, InstructionGroup
-from kivy.clock import Clock
-from math import sin, cos, radians
+import math
+
+g = float(1.62)
+M = float(2250)
+m = [float(1000)]
+C = float(3660)
+q = float(0)
+h = [float(0.0000001)]
+h_min = float(0.00000001)
+V_h = [float(0)]
+x = [float(0)]
+u = [float(0)]
+a = float(0)
+a_max = float(3*9.81)
+al = float(0)
+dm = float(0)
+t = float(0)
+
+i = int(0)
+t_f = [float(0)]
 
 
-class PendulumWidget(Widget):
-
-    def __init__(self, **kwargs):
-        super(PendulumWidget, self).__init__(**kwargs)
-
-        # Pendulum properties
-        self.angle = 90  # Initial angle in degrees
-        self.length = 200  # Length of the pendulum
-        self.origin = (400, 500)  # Origin point of the pendulum
-        self.bob_radius = 20  # Radius of the pendulum bob
-        self.angular_velocity = 0  # Angular velocity of the pendulum
-        self.gravity = 0.01  # Gravity effect
-
-        # Schedule the update method to run every frame
-        Clock.schedule_interval(self.update, 1 / 60.0)
-
-    def update(self, dt):
-        # Update the pendulum's angle based on angular velocity
-        self.angle += self.angular_velocity
-        self.angular_velocity -= self.gravity * sin(radians(self.angle))
-
-        # Calculate the bob's position
-        bob_x = self.origin[0] + self.length * sin(radians(self.angle))
-        bob_y = self.origin[1] - self.length * cos(radians(self.angle))
-
-        # Clear the canvas and redraw the pendulum
-        self.canvas.clear()
-        with self.canvas:
-            # Draw the pendulum string
-            Color(1, 1, 1)
-            Line(points=[self.origin[0], self.origin[1], bob_x, bob_y], width=2)
-            Line(points=[self.origin[0]+40, self.origin[1], bob_x, bob_y], width=2)
-
-            # Draw the pendulum bob
-            Color(0, 1, 0)
-            Ellipse(pos=(bob_x - self.bob_radius, bob_y - self.bob_radius), size=(2 * self.bob_radius, 2 * self.bob_radius))
+def q_a():
+    global q, dm, t, C, M, m, a
+    q = dm / t
+    a = q * C / (M + m[i])
 
 
-class MyApp(App):
-    def build(self):
-        # Create a TabbedPanel
-        tabbed_panel = TabbedPanel(do_default_tab=False)
-
-        # Create the first tab (Input Form)
-        tab1 = TabbedPanelItem(text='Input Form')
-        tab1_content = BoxLayout(orientation='vertical', padding=10, spacing=10)
-
-        # Add a TextInput for entering a number
-        self.number_input = TextInput(hint_text='Enter a number', multiline=False, input_type='number')
-
-        # Add a TextInput for entering a second number
-        self.number_input2 = TextInput(hint_text='Enter 2 number', multiline=False, input_type='number')
-
-        # Add a TextInput for entering a third number
-        self.number_input3 = TextInput(hint_text='Enter 3 number', multiline=False, input_type='number')
-
-        # Add a Button to submit the form
-        self.button = Button(text='Submit')
-        self.button.bind(on_press=self.on_button_press)
-
-        # Add a Label to display the result
-        self.result_label = Label(text='Fill the form and press Submit')
-
-        # Add widgets to the first tab
-        tab1_content.add_widget(self.number_input)
-        tab1_content.add_widget(self.number_input2)
-        tab1_content.add_widget(self.number_input3)
-        tab1_content.add_widget(self.button)
-        tab1_content.add_widget(self.result_label)
-
-        # Set the content of the first tab
-        tab1.add_widget(tab1_content)
-
-        # Create the second tab (Drawing Tab)
-        tab2 = TabbedPanelItem(text='Drawing Tab')
-        tab2_content = PendulumWidget()
-
-        # Set the content of the second tab
-        tab2.add_widget(tab2_content)
-
-        # Add the tabs to the TabbedPanel
-        tabbed_panel.add_widget(tab1)
-        tabbed_panel.add_widget(tab2)
-
-        return tabbed_panel
-
-    def on_button_press(self, instance):
-        try:
-            # Get the text from the TextInput widgets
-            number = float(self.number_input.text)
-            number2 = float(self.number_input2.text)
-            number3 = float(self.number_input3.text)
-
-            # Calculate the sum of the three numbers
-            total_sum = number + number2 + number3
-
-            # Update the Label widget with the sum
-            self.result_label.text = f'Sum: {total_sum}'
-
-            # Clear the input fields
-            self.number_input.text = ''
-            self.number_input2.text = ''
-            self.number_input3.text = ''
-        except ValueError:
-            # Handle the case where the input is not a valid number
-            self.result_label.text = 'Please enter valid numbers'
+def main_bl():
+    global V_h,a,t,al,x,u,g,h
+    V_h.append(V_h[i] + a * t * math.sin(al))
+    x.append(x[i] + (V_h[i] + V_h[i + 1]) / 2 * t)
+    u.append(u[i] + (a * math.cos(al) - g) * t)
+    h.append(h[i] + (u[i + 1] + u[i]) / 2 * t)
+    m.append(m[i] - q * t)
 
 
-MyApp().run()
+def correct_bl():
+    global i, t_f, t, V_h, x, u, h, m
+    main_bl()
+    t_f.append(t_f[i] + t)
+    i += 1
+    main_bl()
+    V_h[i - 1] = V_h[i]
+    x[i - 1] = x[i]
+    u[i - 1] = u[i]
+    h[i - 1] = h[i]
+    m[i - 1] = m[i]
+    t_f[i - 1] = t_f[i]
+
+
+def print_res():
+    global i
+    global t_f
+
+    print("Высота    : ", round(h[i], 2), "V верт : ", round(u[i], 2), "Остаток т:",
+          round(m[i], 2), "a:", round(a, 2))
+    print("Расстояние: ", round(x[i], 2), "V гориз: ", round(V_h[i], 2), "число шагов:",
+          i, "Общее время", round(t_f[i], 2), "\n")
+
+
+def get_date():
+    global t_f
+    global i,dm, t, al, V_h, m, h,x, u, a
+    date_correct = True
+
+    while date_correct:
+        q_max = a_max * (M + m[i]) / C
+        print("Сек.расход не более", round(q_max, 2), "(", round(100 / q_max, 2), "c)")
+        dm = float(input("\ndm:"))
+        t = float(input("t:"))
+        al = float(input("al:"))
+        if dm == 5555 or t == 5555 or al == 5555:
+            i = int(input("\nВведите номер шага для возврата \n"))
+            del V_h[i+1:]
+            del m[i+1:]
+            del h[i+1:]
+            del x[i+1:]
+            del u[i+1:]
+            del t_f[i+1:]
+            print_res()
+            get_date()
+            break
+        if dm > m[i]:
+            t = t * m[i] / dm
+            dm = m[i]
+        dm = dm
+        t = t
+        al = math.pi / 180 * al
+        if dm < 0.05 * (M + m[i]) and t != 0:
+            date_correct = False
+        else:
+            print("\nДанные некорректны")
+
+
+while abs(h[i]) > h_min:
+    if h[i] < 0:
+        t = 2 * h[i] / (math.sqrt(u[i] ** 2 + 2 * h[i] * (g - a * math.cos(al))) - u[i])
+        correct_bl()
+        print("\n------------------------------------------------------------------")
+        print("|    h     |    S     |     Vv    |    Vh   |    T    |    m     |")
+        print("-----------------------------------------------------------------")
+        i_max = len(V_h) - 2
+        for i in range(0, i_max):
+            print('%10s %10s %10s %10s %10s %10s' % (round(h[i], 2), round(x[i], 2),
+                                                round(u[i], 2), round(V_h[i], 2), round(t_f[i], 2), round(m[i], 2)))
+        print("------------------------------------------------------------------")
+        print("|    h     |    S     |     Vv    |    Vh   |    T    |    m     |")
+        print("------------------------------------------------------------------")
+        exit(100)
+    elif h[i] > 0:
+        print_res()
+        get_date()
+    elif abs(h[i]) < h_min:
+        h[i] = 0
+    q_a()
+    main_bl()
+    if a_max < a:
+        t_f.append(t_f[i] + t)
+        i += 1
+        dm = 0
+        t = a - a_max
+        print("a>a_max", a, "\nt:", t)
+        q_a()
+        main_bl()
+        print_res()
+    t_f.append(t_f[i] + t)
+    i += 1
